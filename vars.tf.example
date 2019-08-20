@@ -1,0 +1,41 @@
+// PACKET CREDENTIALS
+// Your Packet API Key, grab one from the portal at https://app.packet.net/portal#/api-keys
+variable "packet_api_key" {
+  default = ""
+}
+
+// Your Project ID, you can see it here https://app.packet.net/portal#/projects/list/table
+variable "packet_project_id" {
+  default = ""
+}
+
+// Etcd Discovery URL
+// curl https://discovery.etcd.io/new?size=3
+variable "etcd_discovery_url" {
+  default = ""
+}
+
+// INFRASTRUCTURE
+// The values for these variables can be found using the Packet API, more here https://www.packet.net/developers/api/. You can also learn more about DC/OS server types here https://docs.mesosphere.com/1.8/overview/concepts/
+
+// The Packet data center you would like to deploy into, the up-to-date list is available via the API endpoint /facilities
+variable "packet_facility" {
+  default = "ams1"
+}
+
+// All server type slugs are available via the API endpoint /plans
+
+// The Packet server to use as your DC/OS agents
+variable "bucc_type" {
+  default = "baremetal_1"
+}
+
+// The Packet server to use as your DC/OS master server
+variable "node_type"  {
+  default = "baremetal_1"
+}
+
+// How many DC/OS private agent servers would you like?
+variable "node_count" {
+  default = "2"
+}
