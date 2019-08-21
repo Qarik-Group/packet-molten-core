@@ -13,26 +13,35 @@ etcd:
   # specify the initial size of your cluster with ?size=X
   discovery:                   "${discovery_url}"
 
+locksmith:
+  reboot_strategy: "etcd-lock"
+  # reboot_strategy: reboot
+  # window_start: Thu 04:00
+  # window_length: 1h
+
 storage:
   files:
   - path: /var/ssl/docker/ca.pem
     filesystem: root
     contents:
-      inline: "${docker_ca}"
+      inline: |
+        ${indent(8, docker_ca)}
     mode: 0644
     user: { id: 500 }
     group: { id: 500 }
   - path: /var/ssl/docker/cert.pem
     filesystem: root
     contents:
-      inline: "${docker_cert}"
+      inline: |
+        ${indent(8, docker_cert)}
     mode: 0644
     user: { id: 500 }
     group: { id: 500 }
   - path: /var/ssl/docker/key.pem
     filesystem: root
     contents:
-      inline: "${docker_key}"
+      inline: |
+        ${indent(8, docker_key)}
     mode: 0644
     user: { id: 500 }
     group: { id: 500 }
@@ -50,6 +59,6 @@ systemd:
     - name: 50-enable-tls.conf
       contents: |
         [Service]
-        Environment=DOCKER_OPTS='--tlsverify --tlscacert=/var/ssl/docker/ca.pem --tlscert=/var/ssl/docker/cert.pem --tlskey=/var/ssl/docker/key.pem -H fd:// -H {PUBLIC_IPV4}:4243'
+        Environment=DOCKER_OPTS='--tlsverify --tlscacert=/var/ssl/docker/ca.pem --tlscert=/var/ssl/docker/cert.pem --tlskey=/var/ssl/docker/key.pem -H 0.0.0.0:4243'
 
 flannel: ~
