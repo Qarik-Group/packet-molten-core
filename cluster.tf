@@ -26,9 +26,20 @@ data "template_file" "container-linux-config" {
   template = file("${path.module}/templates/clc.yaml")
 
   vars = {
-    discovery_url = "${var.etcd_discovery_url}"
+    discovery_url = "${file(var.discovery_url_file)}"
+  }
+
+  depends_on = [template_file.etcd_discovery_url]
+}
+
+resource "template_file" "etcd_discovery_url" {
+  template = "/dev/null"
+
+  provisioner "local-exec" {
+    command = "curl https://discovery.etcd.io/new?size=${(var.node_count + 1)} > ${var.discovery_url_file}"
   }
 }
+
 
 resource "packet_device" "bucc" {
   hostname         = "${format("bucc-%02d.example.com", count.index + 1)}"
