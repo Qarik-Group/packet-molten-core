@@ -17,11 +17,11 @@ resource "packet_project_ssh_key" "ssh_key" {
 }
 
 resource "tls_private_key" "docker_key" {
-  algorithm   = "ECDSA"
+  algorithm   = "RSA"
 }
 
 resource "tls_self_signed_cert" "docker_ca" {
-  key_algorithm   = "ECDSA"
+  key_algorithm   = "RSA"
   private_key_pem = "${tls_private_key.docker_key.private_key_pem}"
 
   subject {
@@ -36,25 +36,25 @@ resource "tls_self_signed_cert" "docker_ca" {
   ]
 }
 
-resource "tls_cert_request" "docker_csr" {
-  key_algorithm   = "ECDSA"
+resource "tls_cert_request" "docker_client_csr" {
+  key_algorithm   = "RSA"
   private_key_pem = "${tls_private_key.docker_key.private_key_pem}"
 
   subject {
-    common_name  = "docker"
+    common_name  = "client"
   }
 }
 
-resource "tls_locally_signed_cert" "docker_cert" {
-  cert_request_pem   = "${tls_cert_request.docker_csr.cert_request_pem}"
-  ca_key_algorithm   = "ECDSA"
+resource "tls_locally_signed_cert" "docker_client_cert" {
+  cert_request_pem   = "${tls_cert_request.docker_client_csr.cert_request_pem}"
+  ca_key_algorithm   = "RSA"
   ca_private_key_pem = "${tls_private_key.docker_key.private_key_pem}"
   ca_cert_pem        = "${tls_self_signed_cert.docker_ca.cert_pem}"
 
   validity_period_hours = 43800
 
   allowed_uses = [
-    "server_auth",
+    "client_auth",
   ]
 }
 
@@ -70,7 +70,6 @@ data "template_file" "container-linux-config" {
   vars = {
     discovery_url = "${file(var.discovery_url_file)}"
     docker_ca = "${tls_self_signed_cert.docker_ca.cert_pem}"
-    docker_cert = "${tls_locally_signed_cert.docker_cert.cert_pem}"
     docker_key = "${tls_private_key.docker_key.private_key_pem}"
   }
 
@@ -87,8 +86,7 @@ resource "template_file" "etcd_discovery_url" {
 
 resource "packet_device" "node" {
   hostname         = "${format("node-%02d.bare-metal.cf", count.index + 1)}"
-  # operating_system = "coreos_stable"
-  operating_system = "coreos_alpha"
+  operating_system = "coreos_stable"
   plan             = "${var.node_type}"
 
   count            = "${var.node_count}"
@@ -97,4 +95,25 @@ resource "packet_device" "node" {
   project_id       = "${var.packet_project_id}"
   billing_cycle    = "hourly"
   project_ssh_key_ids = ["${packet_project_ssh_key.ssh_key.id}"]
+}
+
+output "nodes" {
+  value = ["${packet_device.node.*.access_public_ipv4}"]
+}
+
+output "docker_client_cert" {
+  value = "${tls_locally_signed_cert.docker_client_cert.cert_pem}"
+}
+
+output "docker_ca" {
+  value = "${tls_self_signed_cert.docker_ca.cert_pem}"
+}
+
+output "docker_key" {
+  value = "${tls_private_key.docker_key.private_key_pem}"
+}
+
+
+output "ssh_key" {
+  value = "${tls_private_key.ssh_key.private_key_pem}"
 }

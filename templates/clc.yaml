@@ -29,14 +29,6 @@ storage:
     mode: 0644
     user: { id: 500 }
     group: { id: 500 }
-  - path: /var/ssl/docker/cert.pem
-    filesystem: root
-    contents:
-      inline: |
-        ${indent(8, docker_cert)}
-    mode: 0644
-    user: { id: 500 }
-    group: { id: 500 }
   - path: /var/ssl/docker/key.pem
     filesystem: root
     contents:
@@ -59,6 +51,16 @@ systemd:
     - name: 50-enable-tls.conf
       contents: |
         [Service]
-        Environment=DOCKER_OPTS='--tlsverify --tlscacert=/var/ssl/docker/ca.pem --tlscert=/var/ssl/docker/cert.pem --tlskey=/var/ssl/docker/key.pem -H 0.0.0.0:4243'
+        EnvironmentFile=/run/metadata/coreos
+        Environment=DOCKER_CA=/var/ssl/docker/ca.pem
+        Environment=DOCKER_CERT=/var/ssl/docker/cert.pem
+        Environment=DOCKER_KEY=/var/ssl/docker/key.pem
+        Environment=DOCKER_CSR=/var/ssl/docker/cert.csr
+        Environment=DOCKER_EXTCNF=/var/ssl/docker/extfile.cnf
+        ExecStartPre=openssl req -subj "/CN=$${COREOS_PACKET_IPV4_PUBLIC_0}" -sha256 -new -key $${DOCKER_KEY} -out $${DOCKER_CSR}
+        ExecStartPre=/bin/sh -c 'echo "subjectAltName = IP:$${COREOS_PACKET_IPV4_PUBLIC_0},IP:127.0.0.1" > $${DOCKER_EXTCNF}'
+        ExecStartPre=/bin/sh -c 'echo "extendedKeyUsage = serverAuth" >> $${DOCKER_EXTCNF}'
+        ExecStartPre=openssl x509 -req -days 365 -sha256 -in $${DOCKER_CSR} -CA $${DOCKER_CA} -CAkey $${DOCKER_KEY} -CAcreateserial -out $${DOCKER_CERT} -extfile $${DOCKER_EXTCNF}
+        Environment=DOCKER_OPTS="--tlsverify --tlscacert=/var/ssl/docker/ca.pem --tlscert=/var/ssl/docker/cert.pem --tlskey=/var/ssl/docker/key.pem -H 0.0.0.0:4243"
 
 flannel: ~
