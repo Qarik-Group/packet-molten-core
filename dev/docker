@@ -1,0 +1,9 @@
+#!/bin/bash
+terraform output -json | jq -r '.docker_client_cert.value' > ~/.docker/cert.pem
+terraform output -json | jq -r '.docker_ca.value' > ~/.docker/ca.pem
+terraform output -json | jq -r '.docker_key.value' > ~/.docker/key.pem
+
+host=$(terraform output -json | jq -r '.nodes.value[0][0]')
+
+echo "updates certs in ~/.docker/, use docker by running:"
+echo "docker --tls -H ${host}:4243 ps"

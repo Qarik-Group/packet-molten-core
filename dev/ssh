@@ -1,0 +1,6 @@
+#!/bin/bash
+mkdir -p tmp
+terraform output -json | jq -r '.ssh_key.value' > tmp/key
+chmod 600 tmp/key
+ssh core@$(terraform output -json | jq -r '.nodes.value[0][0]') -i tmp/key
+rm -r tmp
