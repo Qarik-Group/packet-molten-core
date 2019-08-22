@@ -1,0 +1,12 @@
+#!/bin/bash
+
+terraform output -json | jq -r '{
+  director_name: "bucc",
+  docker_host: "tcp://\(.nodes.value[0][0]):4243",
+  internal_ip: .nodes.value[0][0],
+  network: "bridge",
+  docker_tls: {
+    ca: .docker_ca.value,
+    certificate: .docker_client_cert.value,
+    private_key: .docker_key.value,
+  }}'
