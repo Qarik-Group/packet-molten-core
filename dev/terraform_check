@@ -1,0 +1,14 @@
+#!/bin/bash
+
+if terraform version | grep 0.12; then
+  #download ct module
+  VERSION=v0.4.0
+  wget https://github.com/poseidon/terraform-provider-ct/releases/download/$VERSION/terraform-provider-ct-$VERSION-linux-amd64.tar.gz
+  tar xzf terraform-provider-ct-$VERSION-linux-amd64.tar.gz
+  mv terraform-provider-ct-$VERSION-linux-amd64/terraform-provider-ct .terraform/plugins/linux_amd64/terraform-provider-ct_$VERSION
+  rm -r terraform-provider-ct-$VERSION*
+  # run terraform init to get all modules
+  terraform init
+else
+  echo "you terraform version is not compatible"
+fi

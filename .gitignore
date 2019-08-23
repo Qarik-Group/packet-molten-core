@@ -4,3 +4,5 @@
 /key
 /.terraform
 /discovery_url.tmp
+/dev/bucc
+/dev/bosh-docker-cpi-release
