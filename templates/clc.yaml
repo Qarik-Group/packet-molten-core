@@ -16,8 +16,8 @@ etcd:
 locksmith:
   reboot_strategy: "etcd-lock"
   # reboot_strategy: reboot
-  # window_start: Thu 04:00
-  # window_length: 1h
+  window_start: 01:00
+  window_length: 1h
 
 storage:
   files:
@@ -100,6 +100,7 @@ systemd:
       [Unit]
       Description=BUCC - BOSH UAA Credhub and Concourse
       After=docker.service
+      Wants=docker.service
       Requires=docker.service
 
       [Service]
@@ -108,6 +109,9 @@ systemd:
       ExecStart=/opt/bin/bucc-wrapper
       RemainAfterExit=true
       StandardOutput=journal
+
+      [Install]
+      WantedBy=multi-user.target
   - name: flanneld.service
     dropins:
     - name: 50-network-config.conf
