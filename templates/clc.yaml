@@ -45,6 +45,19 @@ storage:
     contents:
       inline: |
         ${indent(8, docker_client_cert)}
+  - path: /opt/bin/bucc
+    filesystem: root
+    mode: 0755
+    user: { id: 500 }
+    group: { id: 500 }
+    contents:
+      inline: |
+        #!/bin/bash
+        docker run \
+          --workdir /bucc \
+          --mount type=bind,source=/var/lib/bucc,target=/bucc/state \
+          --entrypoint /bin/bash -it rkoster/bucc
+
   - path: /opt/bin/bucc-wrapper
     filesystem: root
     mode: 0755
@@ -80,7 +93,7 @@ storage:
               certificate: $cert,
               private_key: $key,
             }
-          }')
+          } | @base64')
 
         set -x
 

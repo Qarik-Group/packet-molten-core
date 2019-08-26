@@ -1,5 +1,5 @@
 #!/bin/bash
 
-echo "$VARS" > /bucc/vars.yml
+echo "$VARS" | base64 --decode | jq -r '.' > /bucc/state/vars.yml
 
 /bucc/bin/bucc "$@"

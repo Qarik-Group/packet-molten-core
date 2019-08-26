@@ -4,7 +4,7 @@ RUN apt-get update && apt-get install -y build-essential zlibc zlib1g-dev \
     ruby ruby-dev openssl libxslt1-dev libxml2-dev libssl-dev libreadline7 \
     libreadline-dev libyaml-dev libsqlite3-dev sqlite3 jq git-core curl
 
-ENV BUCC_VERSION b371359
+ENV BUCC_VERSION 5559ec0
 RUN git clone https://github.com/starkandwayne/bucc /bucc && \
     cd /bucc && git checkout ${BUCC_VERSION}
 
@@ -17,6 +17,9 @@ RUN git clone https://github.com/rkoster/bosh-docker-cpi-release /tmp/bosh-docke
 ADD use-docker-cpi-fork.yml /bucc/operators/
 
 ADD entry.sh /bucc/
+
+RUN cd bucc && ln -s state/vars.yml && \
+    echo "source <(/bucc/bin/bucc env)" >> ~/.bashrc
 
 VOLUME /bucc/state
 
