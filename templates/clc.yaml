@@ -23,29 +23,110 @@ storage:
   files:
   - path: /var/ssl/docker/ca.pem
     filesystem: root
+    mode: 0644
+    user: { id: 500 }
+    group: { id: 500 }
     contents:
       inline: |
         ${indent(8, docker_ca)}
+  - path: /var/ssl/docker/key.pem
+    filesystem: root
     mode: 0644
     user: { id: 500 }
     group: { id: 500 }
-  - path: /var/ssl/docker/key.pem
-    filesystem: root
     contents:
       inline: |
         ${indent(8, docker_key)}
+  - path: /var/ssl/docker/client.pem
+    filesystem: root
     mode: 0644
     user: { id: 500 }
     group: { id: 500 }
+    contents:
+      inline: |
+        ${indent(8, docker_client_cert)}
+  - path: /opt/bin/bucc-wrapper
+    filesystem: root
+    mode: 0755
+    user: { id: 500 }
+    group: { id: 500 }
+    contents:
+      inline: |
+        #!/bin/bash
+
+        if hostname | grep -q -v 01; then
+          echo "not the first cluster node"
+          echo "skipping bucc install"
+          exit 0
+        fi
+
+        IP=$(grep IPV4_PUBLIC /run/metadata/coreos | cut -d= -f2)
+        CA=$(cat /var/ssl/docker/ca.pem)
+        KEY=$(cat /var/ssl/docker/key.pem)
+        CERT=$(cat /var/ssl/docker/client.pem)
+
+        export VARS=$(jq -n -c -r \
+          --arg ip "$IP" \
+          --arg ca "$CA" \
+          --arg cert "$CERT" \
+          --arg key "$KEY" \
+          '{
+            director_name: "bucc",
+            docker_host: "tcp://\($ip):2376",
+            internal_ip: $ip,
+            network: "bridge",
+            docker_tls: {
+              ca: $ca,
+              certificate: $cert,
+              private_key: $key,
+            }
+          }')
+
+        set -x
+
+        /usr/bin/rkt run \
+          --dns=8.8.4.4 \
+          --net=host \
+          --volume sw-bucc-state,kind=host,source=/var/lib/bucc,readOnly=false \
+          --mount volume=sw-bucc-state,target=/bucc/state \
+          --inherit-env --insecure-options=image \
+          docker://rkoster/bucc --exec /bucc/entry.sh -- up --cpi docker --flannel
 
 systemd:
   units:
+  - name: bucc.service
+    enabled: true
+    contents: |
+      [Unit]
+      Description=BUCC - BOSH UAA Credhub and Concourse
+      After=docker.service
+      Requires=docker.service
+
+      [Service]
+      Type=oneshot
+      ExecStartPre=mkdir -p /var/lib/bucc
+      ExecStart=/opt/bin/bucc-wrapper
+      RemainAfterExit=true
+      StandardOutput=journal
   - name: flanneld.service
     dropins:
     - name: 50-network-config.conf
       contents: |
         [Service]
         ExecStartPre=/usr/bin/etcdctl set /coreos.com/network/config '{ "Network": "10.1.0.0/16" }'
+  - name: docker-tls-tcp.socket
+    enable: true
+    contents: |
+      [Unit]
+      Description=Docker Secured Socket for the API
+
+      [Socket]
+      ListenStream=2376
+      BindIPv6Only=both
+      Service=docker.service
+
+      [Install]
+      WantedBy=sockets.target
   - name: docker.service
     dropins:
     - name: 50-enable-tls.conf
@@ -61,6 +142,12 @@ systemd:
         ExecStartPre=/bin/sh -c 'echo "subjectAltName = IP:$${COREOS_PACKET_IPV4_PUBLIC_0},IP:127.0.0.1" > $${DOCKER_EXTCNF}'
         ExecStartPre=/bin/sh -c 'echo "extendedKeyUsage = serverAuth" >> $${DOCKER_EXTCNF}'
         ExecStartPre=openssl x509 -req -days 365 -sha256 -in $${DOCKER_CSR} -CA $${DOCKER_CA} -CAkey $${DOCKER_KEY} -CAcreateserial -out $${DOCKER_CERT} -extfile $${DOCKER_EXTCNF}
-        Environment=DOCKER_OPTS="--tlsverify --tlscacert=/var/ssl/docker/ca.pem --tlscert=/var/ssl/docker/cert.pem --tlskey=/var/ssl/docker/key.pem -H 0.0.0.0:4243"
+
+docker:
+  flags:
+    - --tlsverify
+    - --tlscacert=/var/ssl/docker/ca.pem
+    - --tlscert=/var/ssl/docker/cert.pem
+    - --tlskey=/var/ssl/docker/key.pem
 
 flannel: ~

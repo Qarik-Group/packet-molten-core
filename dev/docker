@@ -6,4 +6,4 @@ terraform output -json | jq -r '.docker_key.value' > ~/.docker/key.pem
 host=$(terraform output -json | jq -r '.nodes.value[0][0]')
 
 echo "updates certs in ~/.docker/, use docker by running:"
-echo "docker --tls -H ${host}:4243 ps"
+echo "docker --tls -H ${host}:2376 ps"

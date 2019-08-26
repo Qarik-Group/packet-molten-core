@@ -71,6 +71,7 @@ data "template_file" "container-linux-config" {
     discovery_url = "${file(var.discovery_url_file)}"
     docker_ca = "${tls_self_signed_cert.docker_ca.cert_pem}"
     docker_key = "${tls_private_key.docker_key.private_key_pem}"
+    docker_client_cert = "${tls_locally_signed_cert.docker_client_cert.cert_pem}"
   }
 
   depends_on = [template_file.etcd_discovery_url]
