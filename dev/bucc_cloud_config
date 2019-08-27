@@ -36,9 +36,9 @@ CCT='{
       "subnets": [
         {
           "azs": [
+            "z0",
             "z1",
-            "z2",
-            "z3"
+            "z2"
           ],
           "cloud_properties": {
             "name": "bridge"
@@ -113,8 +113,8 @@ CCT='{
 }'
 
 CC=$(terraform output -json | jq -c -r --argjson CC "$CCT" '.nodes.value[0] | to_entries | map({
-  name: "z\(.key + 1)",
-  cpi: "docker-z\(.key + 1)",
+  name: "z\(.key)",
+  cpi: "docker-z\(.key)",
 }) | {azs: .} | to_entries | ($CC | to_entries) + . | from_entries')
 
 echo "bosh update-cloud-config <(echo '$CC')"
