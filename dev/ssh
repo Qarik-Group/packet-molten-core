@@ -2,5 +2,9 @@
 mkdir -p tmp
 terraform output -json | jq -r '.ssh_key.value' > tmp/key
 chmod 600 tmp/key
-ssh core@$(terraform output -json | jq -r '.nodes.value[0][0]') -i tmp/key
+# README
+# usage is ./dev/ssh node-number
+# example: ./dev/ssh 1
+node=${@:-0}
+ssh core@$(terraform output -json | jq -r '.nodes.value[0]['$node']') -i tmp/key
 rm -r tmp
