@@ -112,16 +112,37 @@ CCT='{
   ],
   "vm_types": [
     {
-      "name": "minimal"
+      "name": "minimal",
+      "cloud_properties": {
+        "RestartPolicy": {
+          "Name": "always"
+        }
+      }
     },
     {
-      "name": "small"
+      "name": "small",
+      "cloud_properties": {
+        "RestartPolicy": {
+          "Name": "always"
+        }
+      }
+
     },
     {
-      "name": "small-highmem"
+      "name": "small-highmem",
+      "cloud_properties": {
+        "RestartPolicy": {
+          "Name": "always"
+        }
+      }
     },
     {
-      "name": "default"
+      "name": "default",
+      "cloud_properties": {
+        "RestartPolicy": {
+          "Name": "always"
+        }
+      }
     }
   ]
 }'
