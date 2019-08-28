@@ -4,14 +4,12 @@ CPIS=$(terraform output -json | jq -c -r '. as $root | $root.nodes.value[0] | to
   name: "docker-z\(.key)",
   type: "docker",
   properties: {
-    docker: {
-      host: "tcp://\(.value):2376",
-      api_version: "1.38",
-      tls: {
-        ca: $root.docker_ca.value,
-        certificate: $root.docker_client_cert.value,
-        private_key: $root.docker_key.value
-      }
+    host: "tcp://\(.value):2376",
+    api_version: "1.38",
+    tls: {
+      ca: $root.docker_ca.value,
+      certificate: $root.docker_client_cert.value,
+      private_key: $root.docker_key.value
     }
   }
 }) | {cpis: .}')
