@@ -58,16 +58,12 @@ resource "tls_locally_signed_cert" "docker_client_cert" {
   ]
 }
 
-data "ct_config" "container-linux-config" {
-  content      = data.template_file.container-linux-config.rendered
-  platform     = "packet"
-  pretty_print = false
-}
-
 data "template_file" "container-linux-config" {
   template = file("${path.module}/templates/clc.yaml")
+  count = "${var.node_count}"
 
   vars = {
+    flannel_cidr = replace(cidrsubnet("10.1.0.0/16", 8, count.index), "/", "-")
     discovery_url = "${file(var.discovery_url_file)}"
     docker_ca = "${tls_self_signed_cert.docker_ca.cert_pem}"
     docker_key = "${tls_private_key.docker_key.private_key_pem}"
@@ -75,6 +71,15 @@ data "template_file" "container-linux-config" {
   }
 
   depends_on = [template_file.etcd_discovery_url]
+}
+
+data "ct_config" "container-linux-config" {
+  count = "${var.node_count}"
+  content      = "${element(data.template_file.container-linux-config.*.rendered, count.index)}"
+  platform     = "packet"
+  pretty_print = false
+
+  depends_on = [data.template_file.container-linux-config]
 }
 
 resource "template_file" "etcd_discovery_url" {
@@ -91,7 +96,7 @@ resource "packet_device" "node" {
   plan             = "${var.node_type}"
 
   count            = "${var.node_count}"
-  user_data        = data.ct_config.container-linux-config.rendered
+  user_data        = "${element(data.ct_config.container-linux-config.*.rendered, count.index)}"
   facilities       = ["${var.packet_facility}"]
   project_id       = "${var.packet_project_id}"
   billing_cycle    = "hourly"
