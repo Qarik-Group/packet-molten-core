@@ -107,6 +107,10 @@ output "nodes" {
   value = ["${packet_device.node.*.access_public_ipv4}"]
 }
 
+output "cidr" {
+  value = [replace("${data.template_file.container-linux-config.*.vars.flannel_cidr}", "/", "-")]
+}
+
 output "docker_client_cert" {
   value = "${tls_locally_signed_cert.docker_client_cert.cert_pem}"
 }

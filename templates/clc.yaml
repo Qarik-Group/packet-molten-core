@@ -56,6 +56,7 @@ storage:
         docker run \
           --workdir /bucc \
           --mount type=bind,source=/var/lib/bucc,target=/bucc/state \
+          --network bosh \
           --entrypoint /bin/bash -it rkoster/bucc
 
   - path: /opt/bin/bucc-wrapper
@@ -86,8 +87,11 @@ storage:
           '{
             director_name: "bucc",
             docker_host: "tcp://\($ip):2376",
-            internal_ip: $ip,
-            network: "bridge",
+            internal_cidr: "10.1.0.0/24",
+            internal_ip: "10.1.0.10",
+            internal_gw: "10.1.0.1",
+            concourse_domain: $ip,
+            network: "bosh",
             docker_tls: {
               ca: $ca,
               certificate: $cert,
@@ -103,7 +107,7 @@ storage:
           --volume sw-bucc-state,kind=host,source=/var/lib/bucc,readOnly=false \
           --mount volume=sw-bucc-state,target=/bucc/state \
           --inherit-env --insecure-options=image \
-          docker://rkoster/bucc --exec /bucc/entry.sh -- up --recreate --cpi docker --flannel
+          docker://rkoster/bucc --exec /bucc/entry.sh -- up --recreate --cpi docker --flannel --concourse-lb
 
 systemd:
   units:
@@ -132,7 +136,7 @@ systemd:
         [Service]
         EnvironmentFile=/run/metadata/coreos
         ExecStartPre=/usr/bin/etcdctl set /coreos.com/network/config '{ "Network": "10.1.0.0/16" }'
-        ExecStartPre=/usr/bin/etcdctl set /coreos.com/network/subnets/${flannel_cidr} "{\"PublicIP\":\"$${COREOS_PACKET_IPV4_PRIVATE_0}\"}"
+        ExecStartPre=/usr/bin/etcdctl set /coreos.com/network/subnets/${flannel_cidr} "{\"PublicIP\":\"$${COREOS_PACKET_IPV4_PUBLIC_0}\"}"
   - name: docker-tls-tcp.socket
     enable: true
     contents: |
@@ -148,6 +152,10 @@ systemd:
       WantedBy=sockets.target
   - name: docker.service
     dropins:
+    - name: 60-disable-flannel-default-bridge.conf
+      contents: |
+        [Service]
+        ExecStartPre=/bin/sh -c 'echo "" > /run/flannel/flannel_docker_opts.env'
     - name: 50-enable-tls.conf
       contents: |
         [Service]
