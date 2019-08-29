@@ -45,6 +45,8 @@ storage:
     contents:
       inline: |
         ${indent(8, docker_client_cert)}
+
+%{ if index == "0" }
   - path: /opt/bin/bucc
     filesystem: root
     mode: 0755
@@ -67,13 +69,6 @@ storage:
     contents:
       inline: |
         #!/bin/bash
-
-        if hostname | grep -q -v 01; then
-          echo "not the first cluster node"
-          echo "skipping bucc install"
-          exit 0
-        fi
-
         IP=$(grep IPV4_PUBLIC /run/metadata/coreos | cut -d= -f2)
         CA=$(cat /var/ssl/docker/ca.pem)
         KEY=$(cat /var/ssl/docker/key.pem)
@@ -108,9 +103,11 @@ storage:
           --mount volume=sw-bucc-state,target=/bucc/state \
           --inherit-env --insecure-options=image \
           docker://rkoster/bucc --exec /bucc/entry.sh -- up --recreate --cpi docker --flannel --concourse-lb
+%{ endif }
 
 systemd:
   units:
+%{ if index == "0" }
   - name: bucc.service
     enabled: true
     contents: |
@@ -129,6 +126,7 @@ systemd:
 
       [Install]
       WantedBy=multi-user.target
+%{ endif }
   - name: flanneld.service
     dropins:
     - name: 50-network-config.conf
@@ -136,7 +134,7 @@ systemd:
         [Service]
         EnvironmentFile=/run/metadata/coreos
         ExecStartPre=/usr/bin/etcdctl set /coreos.com/network/config '{ "Network": "10.1.0.0/16" }'
-        ExecStartPre=/usr/bin/etcdctl set /coreos.com/network/subnets/${flannel_cidr} "{\"PublicIP\":\"$${COREOS_PACKET_IPV4_PUBLIC_0}\"}"
+        ExecStartPre=/usr/bin/etcdctl set /coreos.com/network/subnets/${flannel_cidr_dashed} "{\"PublicIP\":\"$${COREOS_PACKET_IPV4_PUBLIC_0}\"}"
   - name: docker-tls-tcp.socket
     enable: true
     contents: |
