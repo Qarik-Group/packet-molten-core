@@ -147,9 +147,22 @@ CCT='{
   ]
 }'
 
-CC=$(terraform output -json | jq -c -r --argjson CC "$CCT" '.nodes.value[0] | to_entries | map({
-  name: "z\(.key)",
-  cpi: "docker-z\(.key)",
-}) | {azs: .} | to_entries | ($CC | to_entries) + . | from_entries')
+CC=$(terraform output -json | jq -c -r --argjson CC "$CCT" '. as $root
+  | $root.nodes.value[0] | to_entries | map({
+    name: "z\(.key)",
+    cpi: "docker-z\(.key)",
+  }) | {azs: .} as $azs
+  | $root.flannel_cidrs.value[0] | to_entries | map({
+    range: .value,
+    gateway: (.value | sub("0/24"; "1")),
+    reserved: [ "\(.value | sub("0/24"; "2")) - \(.value | sub("0/24"; "10"))" ],
+    az: "z\(.key)",
+    cloud_properties: { name: "bosh" }
+  }) | {networks: [{
+    name: "default",
+    type: "manual",
+    subnets: .,
+  }]} as $networks
+  | ($CC | to_entries) + ($azs | to_entries) + ($networks | to_entries) | from_entries')
 
 echo "bosh update-cloud-config <(echo '$CC')"
