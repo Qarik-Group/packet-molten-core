@@ -63,7 +63,9 @@ data "template_file" "container-linux-config" {
   count = "${var.node_count}"
 
   vars = {
-    flannel_cidr = replace(cidrsubnet("10.1.0.0/16", 8, count.index), "/", "-")
+    index = count.index
+    flannel_cidr = cidrsubnet("10.1.0.0/16", 8, count.index)
+    flannel_cidr_dashed = replace(cidrsubnet("10.1.0.0/16", 8, count.index), "/", "-")
     discovery_url = "${file(var.discovery_url_file)}"
     docker_ca = "${tls_self_signed_cert.docker_ca.cert_pem}"
     docker_key = "${tls_private_key.docker_key.private_key_pem}"
@@ -91,7 +93,7 @@ resource "template_file" "etcd_discovery_url" {
 }
 
 resource "packet_device" "node" {
-  hostname         = "${format("node-%02d.bare-metal.cf", count.index + 1)}"
+  hostname         = "${format("node-z%01d.bare-metal.cf", count.index)}"
   operating_system = "coreos_stable"
   plan             = "${var.node_type}"
 
@@ -107,8 +109,8 @@ output "nodes" {
   value = ["${packet_device.node.*.access_public_ipv4}"]
 }
 
-output "cidr" {
-  value = [replace("${data.template_file.container-linux-config.*.vars.flannel_cidr}", "/", "-")]
+output "flannel_cidrs" {
+  value = ["${data.template_file.container-linux-config.*.vars.flannel_cidr}"]
 }
 
 output "docker_client_cert" {
