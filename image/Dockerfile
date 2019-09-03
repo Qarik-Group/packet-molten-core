@@ -5,7 +5,7 @@ RUN apt-get update && apt-get install -y build-essential zlibc zlib1g-dev \
     libreadline-dev libyaml-dev libsqlite3-dev sqlite3 jq git-core curl \
     net-tools iputils-ping
 
-ENV BUCC_VERSION 8b33356
+ENV BUCC_VERSION 9977aad
 RUN git clone https://github.com/starkandwayne/bucc /bucc && \
     cd /bucc && git checkout ${BUCC_VERSION}
 
