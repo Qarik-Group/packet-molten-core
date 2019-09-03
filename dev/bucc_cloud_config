@@ -68,31 +68,47 @@ CCT='{
       "name": "1TB_ephemeral_disk"
     },
     {
-      "name": "cf-router-network-properties"
-    },
-    {
-      "name": "diego-ssh-proxy-network-properties"
-    },
-    {
-      "name": "cf-tcp-router-network-properties"
-    },
-    {
-      "name": "haproxy-network-properties",
+      "name": "cf-router-network-properties",
       "cloud_properties": {
         "PortBindings": {
-          "2222/tcp": [{ "HostPort": "2222", "HostIp": "0.0.0.0" }],
           "80/tcp": [{ "HostPort": "80", "HostIp": "0.0.0.0" }],
           "443/tcp": [{ "HostPort": "443", "HostIp": "0.0.0.0" }]
-
         },
         "ports": [
-          "2222/tcp",
           "80/tcp",
           "443/tcp"
         ]
       }
-    }
+    },
+    {
+      "name": "diego-ssh-proxy-network-properties",
+      "cloud_properties": {
+        "PortBindings": {
+          "2222/tcp": [{ "HostPort": "2222", "HostIp": "0.0.0.0" }]
+        },
+        "ports": [
+          "2222/tcp"
+        ]
+      }
+    },
+    {
+      "name": "cf-tcp-router-network-properties",
+      "cloud_properties": {
+        "PortBindings": {
+          "1024/tcp": [{ "HostPort": "1024", "HostIp": "0.0.0.0" }],
+          "1025/tcp": [{ "HostPort": "1025", "HostIp": "0.0.0.0" }],
+          "1026/tcp": [{ "HostPort": "1026", "HostIp": "0.0.0.0" }],
+          "1027/tcp": [{ "HostPort": "1027", "HostIp": "0.0.0.0" }]
 
+        },
+        "ports": [
+          "1024/tcp",
+          "1025/tcp",
+          "1026/tcp",
+          "1027/tcp"
+        ]
+      }
+    }
   ],
   "vm_types": [
     {
