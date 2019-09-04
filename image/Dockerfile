@@ -11,6 +11,9 @@ RUN git clone https://github.com/starkandwayne/bucc /bucc && \
 
 RUN /bucc/bin/bucc env
 
+ADD workers.yml /bucc/operators/
+
+
 ADD entry.sh /bucc/
 
 RUN cd bucc && ln -s state/vars.yml && \
