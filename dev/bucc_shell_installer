@@ -1,0 +1,58 @@
+#!/bin/bash
+
+install_path=${1:-/usr/local/bin}
+cert=$(terraform output -json | jq -r '.docker_client_cert.value')
+ca=$(terraform output -json | jq -r '.docker_ca.value')
+key=$(terraform output -json | jq -r '.docker_key.value')
+host="$(terraform output -json | jq -r '.nodes.value[0][0]'):2376"
+
+BUCC=$(cat <<INSTALL
+#!/bin/bash
+cat << BIN > ${install_path}/bucc-shell
+#!/bin/bash
+certs_dir=\\\$(mktemp -d -t docker-certs-XXXXX)
+function cleanup {
+  docker rm -f \\\${id} > /dev/null
+  rm -rf \\\${certs_dir}
+}
+trap cleanup EXIT
+
+cat << EOF > \\\$certs_dir/cert.pem
+${cert}
+EOF
+
+cat << EOF > \\\$certs_dir/ca.pem
+${ca}
+EOF
+
+cat << EOF > \\\$certs_dir/key.pem
+${key}
+EOF
+
+export DOCKER_HOST=${host}
+export DOCKER_CERT_PATH=\\\${certs_dir}
+export DOCKER_TLS=true
+
+id=\\\$(docker run --rm \
+  --workdir /bucc \
+  --mount type=bind,source=/var/lib/bucc,target=/bucc/state,readonly \
+  --network bosh \
+  --entrypoint tail \
+  --detach \
+  rkoster/bucc -f /dev/null)
+
+echo "Uploading workdir: \\\$(pwd)"
+docker cp . \\\${id}:/root
+
+docker exec -it \
+  --workdir /root \
+  \\\${id} \
+  /bin/bash
+BIN
+
+chmod +x ${install_path}/bucc-shell
+
+INSTALL
+    )
+
+echo -e "$BUCC"
