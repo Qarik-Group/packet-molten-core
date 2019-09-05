@@ -9,10 +9,10 @@ variable "packet_project_id" {
   default = ""
 }
 
-// Etcd Discovery URL
+// Etcd Discovery URL File location
 // curl https://discovery.etcd.io/new?size=3
-variable "etcd_discovery_url" {
-  default = ""
+variable "discovery_url_file" {
+  default = "discovery_url.tmp"
 }
 
 // INFRASTRUCTURE
@@ -25,10 +25,6 @@ variable "packet_facility" {
 
 // All server type slugs are available via the API endpoint /plans
 
-// The Packet server to use as your DC/OS agents
-variable "bucc_type" {
-  default = "baremetal_1"
-}
 
 // The Packet server to use as your DC/OS master server
 variable "node_type"  {
