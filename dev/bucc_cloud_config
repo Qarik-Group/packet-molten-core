@@ -155,7 +155,7 @@ CC=$(terraform output -json | jq -c -r --argjson CC "$CCT" '. as $root
   | $root.flannel_cidrs.value[0] | to_entries | map({
     range: .value,
     gateway: (.value | sub("0/24"; "1")),
-    reserved: [ "\(.value | sub("0/24"; "2")) - \(.value | sub("0/24"; "10"))" ],
+    reserved: [ "\(.value | sub("0/24"; "2")) - \(.value | sub("0/24"; "20"))" ],
     az: "z\(.key)",
     cloud_properties: { name: "bosh" }
   }) | {networks: [{
