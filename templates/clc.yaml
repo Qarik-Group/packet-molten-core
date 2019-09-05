@@ -55,7 +55,7 @@ storage:
     contents:
       inline: |
         #!/bin/bash
-        docker run \
+        docker run --rm \
           --workdir /bucc \
           --mount type=bind,source=/var/lib/bucc,target=/bucc/state \
           --network bosh \
