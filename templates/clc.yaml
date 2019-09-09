@@ -69,7 +69,7 @@ storage:
     contents:
       inline: |
         #!/bin/bash
-        IP=$(grep IPV4_PUBLIC /run/metadata/coreos | cut -d= -f2)
+        IP=$(grep IPV4_PUBLIC_0 /run/metadata/coreos | cut -d= -f2)
         CA=$(cat /var/ssl/docker/ca.pem)
         KEY=$(cat /var/ssl/docker/key.pem)
         CERT=$(cat /var/ssl/docker/client.pem)
