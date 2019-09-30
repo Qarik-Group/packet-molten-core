@@ -1,0 +1,11 @@
+#!/bin/bash
+# use https://github.com/coreos/container-linux-config-transpiler
+ct -in-file templates/clc.yaml \
+   -out-file templates/config.ign \
+   -platform packet -pretty -strict
+
+# terraform should ignore variables
+sed -i 's/${COREOS_PACKET_IPV4_PRIVATE_0}/$${COREOS_PACKET_IPV4_PRIVATE_0}/g' templates/config.ign
+sed -i 's/discovery_url/${discovery_url}/g' templates/config.ign
+
+# make discovery_url a var

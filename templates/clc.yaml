@@ -1,179 +1,46 @@
 etcd:
-  # All options get passed as command line flags to etcd.
-  # Any information inside curly braces comes from the machine at boot time.
-
-  # multi_region and multi_cloud deployments need to use {PUBLIC_IPV4}
+  version: 3.2.27
   advertise_client_urls:       "http://{PRIVATE_IPV4}:2379"
   initial_advertise_peer_urls: "http://{PRIVATE_IPV4}:2380"
-  # listen on both the official ports and the legacy ports
-  # legacy ports can be omitted if your application doesn't depend on them
   listen_client_urls:          "http://0.0.0.0:2379"
   listen_peer_urls:            "http://{PRIVATE_IPV4}:2380"
-  # generate a new token for each unique cluster from https://discovery.etcd.io/new?size=3
-  # specify the initial size of your cluster with ?size=X
-  discovery:                   "${discovery_url}"
+  discovery:                   "discovery_url"
 
-locksmith:
-  reboot_strategy: "etcd-lock"
-  # reboot_strategy: reboot
-  window_start: 01:00
-  window_length: 1h
+flannel:
+  version: 0.7.0
+  network_config: '{"Network": "10.1.0.0/16"}'
+  public_ip: "{PRIVATE_IPV4}"
 
 storage:
   files:
-  - path: /var/ssl/docker/ca.pem
-    filesystem: root
-    mode: 0644
-    user: { id: 500 }
-    group: { id: 500 }
-    contents:
-      inline: |
-        ${indent(8, docker_ca)}
-  - path: /var/ssl/docker/key.pem
-    filesystem: root
-    mode: 0644
-    user: { id: 500 }
-    group: { id: 500 }
-    contents:
-      inline: |
-        ${indent(8, docker_key)}
-  - path: /var/ssl/docker/client.pem
-    filesystem: root
-    mode: 0644
-    user: { id: 500 }
-    group: { id: 500 }
-    contents:
-      inline: |
-        ${indent(8, docker_client_cert)}
-
-%{ if index == "0" }
-  - path: /opt/bin/bucc
-    filesystem: root
+  - filesystem: "root"
+    path: "/opt/bin/mc"
     mode: 0755
-    user: { id: 500 }
-    group: { id: 500 }
     contents:
-      inline: |
-        #!/bin/bash
-        docker run --rm \
-          --workdir /bucc \
-          --mount type=bind,source=/var/lib/bucc,target=/bucc/state \
-          --network bosh \
-          --entrypoint /bin/bash -it rkoster/bucc
-
-  - path: /opt/bin/bucc-wrapper
-    filesystem: root
-    mode: 0755
-    user: { id: 500 }
-    group: { id: 500 }
-    contents:
-      inline: |
-        #!/bin/bash
-        IP=$(grep IPV4_PUBLIC_0 /run/metadata/coreos | cut -d= -f2)
-        CA=$(cat /var/ssl/docker/ca.pem)
-        KEY=$(cat /var/ssl/docker/key.pem)
-        CERT=$(cat /var/ssl/docker/client.pem)
-
-        export VARS=$(jq -n -c -r \
-          --arg ip "$IP" \
-          --arg ca "$CA" \
-          --arg cert "$CERT" \
-          --arg key "$KEY" \
-          '{
-            director_name: "bucc",
-            docker_host: "tcp://\($ip):2376",
-            internal_cidr: "10.1.1.0/24",
-            internal_ip: "10.1.1.10",
-            internal_gw: "10.1.1.1",
-            concourse_domain: $ip,
-            host_ip: $ip,
-            network: "bosh",
-            docker_tls: {
-              ca: $ca,
-              certificate: $cert,
-              private_key: $key,
-            }
-          } | @base64')
-
-        set -x
-
-        /usr/bin/rkt run \
-          --dns=8.8.4.4 \
-          --net=host \
-          --volume sw-bucc-state,kind=host,source=/var/lib/bucc,readOnly=false \
-          --mount volume=sw-bucc-state,target=/bucc/state \
-          --inherit-env --insecure-options=image \
-          docker://rkoster/bucc --exec /bucc/entry.sh -- up --recreate --cpi docker --flannel --concourse-lb
-%{ endif }
+      remote:
+        url: https://molton-core.s3.eu-central-1.amazonaws.com/mc-linux-amd64
+        verification:
+          hash:
+            function: sha512
+            sum: 214b9ee0ed7494c4dd442da30ef9386c9d8ae890667f33b3ef4a2458e3e2272df414866223e381b271cb93116c456bd8551064382850c96cd2e5cafd3b6de039
 
 systemd:
   units:
-%{ if index == "0" }
-  - name: bucc.service
-    enabled: true
-    contents: |
-      [Unit]
-      Description=BUCC - BOSH UAA Credhub and Concourse
-      After=docker.service
-      Wants=docker.service
-      Requires=docker.service
-
-      [Service]
-      Type=oneshot
-      ExecStartPre=mkdir -p /var/lib/bucc
-      ExecStart=/opt/bin/bucc-wrapper
-      RemainAfterExit=true
-      StandardOutput=journal
-
-      [Install]
-      WantedBy=multi-user.target
-%{ endif }
-  - name: flanneld.service
-    dropins:
-    - name: 50-network-config.conf
-      contents: |
-        [Service]
-        EnvironmentFile=/run/metadata/coreos
-        ExecStartPre=/usr/bin/etcdctl set /coreos.com/network/config '{ "Network": "10.1.0.0/16" }'
-        ExecStartPre=/usr/bin/etcdctl set /coreos.com/network/subnets/${flannel_cidr_dashed} "{\"PublicIP\":\"$${COREOS_PACKET_IPV4_PUBLIC_0}\"}"
-  - name: docker-tls-tcp.socket
+  - name: mc.service
     enable: true
     contents: |
       [Unit]
-      Description=Docker Secured Socket for the API
+      Description=MoltenCore
+      Requires=etcd-member.service flanneld.service coreos-metadata.service
+      After=etcd-member.service flanneld.service coreos-metadata.service
 
-      [Socket]
-      ListenStream=2376
-      BindIPv6Only=both
-      Service=docker.service
+      [Service]
+      Type=oneshot
+      EnvironmentFile=/run/metadata/coreos
+      ExecStart=/opt/bin/mc init
+      RemainAfterExit=true
+      StandardOutput=journal
+      User=root
 
       [Install]
-      WantedBy=sockets.target
-  - name: docker.service
-    dropins:
-    - name: 60-disable-flannel-default-bridge.conf
-      contents: |
-        [Service]
-        ExecStartPre=/bin/sh -c 'echo "" > /run/flannel/flannel_docker_opts.env'
-    - name: 50-enable-tls.conf
-      contents: |
-        [Service]
-        EnvironmentFile=/run/metadata/coreos
-        Environment=DOCKER_CA=/var/ssl/docker/ca.pem
-        Environment=DOCKER_CERT=/var/ssl/docker/cert.pem
-        Environment=DOCKER_KEY=/var/ssl/docker/key.pem
-        Environment=DOCKER_CSR=/var/ssl/docker/cert.csr
-        Environment=DOCKER_EXTCNF=/var/ssl/docker/extfile.cnf
-        ExecStartPre=openssl req -subj "/CN=$${COREOS_PACKET_IPV4_PUBLIC_0}" -sha256 -new -key $${DOCKER_KEY} -out $${DOCKER_CSR}
-        ExecStartPre=/bin/sh -c 'echo "subjectAltName = IP:$${COREOS_PACKET_IPV4_PUBLIC_0},IP:127.0.0.1" > $${DOCKER_EXTCNF}'
-        ExecStartPre=/bin/sh -c 'echo "extendedKeyUsage = serverAuth" >> $${DOCKER_EXTCNF}'
-        ExecStartPre=openssl x509 -req -days 365 -sha256 -in $${DOCKER_CSR} -CA $${DOCKER_CA} -CAkey $${DOCKER_KEY} -CAcreateserial -out $${DOCKER_CERT} -extfile $${DOCKER_EXTCNF}
-
-docker:
-  flags:
-    - --tlsverify
-    - --tlscacert=/var/ssl/docker/ca.pem
-    - --tlscert=/var/ssl/docker/cert.pem
-    - --tlskey=/var/ssl/docker/key.pem
-
-flannel: ~
+      WantedBy=multi-user.target docker.service
