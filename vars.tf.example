@@ -23,15 +23,15 @@ variable "packet_facility" {
   default = "ams1"
 }
 
-// All server type slugs are available via the API endpoint /plans
+// All server type slugs are available at https://www.packet.com/cloud/servers
 
 
 // The Packet server to use as your DC/OS master server
 variable "node_type"  {
-  default = "baremetal_1"
+  default = "c1.small.x86"
 }
 
 // How many DC/OS private agent servers would you like?
 variable "node_count" {
-  default = "2"
+  default = "3"
 }
