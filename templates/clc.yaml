@@ -7,9 +7,8 @@ etcd:
   discovery:                   "discovery_url"
 
 flannel:
-  version: 0.7.0
   network_config: '{"Network": "10.1.0.0/16"}'
-  public_ip: "{PRIVATE_IPV4}"
+  # public_ip: "{PRIVATE_IPV4}" https://github.com/coreos/flannel/issues/1192
 
 storage:
   files:
@@ -22,7 +21,7 @@ storage:
         verification:
           hash:
             function: sha512
-            sum: 214b9ee0ed7494c4dd442da30ef9386c9d8ae890667f33b3ef4a2458e3e2272df414866223e381b271cb93116c456bd8551064382850c96cd2e5cafd3b6de039
+            sum: 724685116374bb28a07160b9e62e2a54002be0f87261f98345169f17efb7541c13a7abcad01c18ba7e945eaa1a908a6485b0ae7abae0c1afccff5cfd051cf355
 
 systemd:
   units:
