@@ -29,7 +29,7 @@
       {
         "dropins": [
           {
-            "contents": "[Unit]\nRequires=coreos-metadata.service\nAfter=coreos-metadata.service\n\n[Service]\nEnvironmentFile=/run/metadata/coreos\nEnvironment=\"ETCD_IMAGE_TAG=v3.2.27\"\nExecStart=\nExecStart=/usr/lib/coreos/etcd-wrapper $ETCD_OPTS \\\n  --listen-peer-urls=\"http://$${COREOS_PACKET_IPV4_PRIVATE_0}:2380\" \\\n  --listen-client-urls=\"http://0.0.0.0:2379\" \\\n  --initial-advertise-peer-urls=\"http://$${COREOS_PACKET_IPV4_PRIVATE_0}:2380\" \\\n  --advertise-client-urls=\"http://$${COREOS_PACKET_IPV4_PRIVATE_0}:2379\" \\\n  --discovery=\"${discovery_url}\"",
+            "contents": "[Unit]\nRequires=coreos-metadata.service\nAfter=coreos-metadata.service\n\n[Service]\nEnvironmentFile=/run/metadata/coreos\nEnvironment=\"ETCD_IMAGE_TAG=v3.2.27\"\nExecStart=\nExecStart=/usr/lib/coreos/etcd-wrapper $ETCD_OPTS \\\n  --listen-peer-urls=\"http://${COREOS_PACKET_IPV4_PRIVATE_0}:2380\" \\\n  --listen-client-urls=\"http://0.0.0.0:2379\" \\\n  --initial-advertise-peer-urls=\"http://${COREOS_PACKET_IPV4_PRIVATE_0}:2380\" \\\n  --advertise-client-urls=\"http://${COREOS_PACKET_IPV4_PRIVATE_0}:2379\" \\\n  --discovery=\"discovery_url\"",
             "name": "20-clct-etcd-member.conf"
           }
         ],
