@@ -47,12 +47,11 @@ resources:
   source:
     owner: starkandwayne
     repository: molten-core
-    access_token: ((github_access_token))
+    access_token: ((github-access-token))
 
 - name: packet-molten-core
   type: git
   source:
     branch: master
-    uri: https://github.com/starkandwayne/packet-molten-core.git
-    username: ((github_user_name))
-    password: ((github_access_token))
+    uri: git@github.com:starkandwayne/molten-core.git
+    private_key: ((github-private-key))
