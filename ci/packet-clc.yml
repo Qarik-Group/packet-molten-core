@@ -1,0 +1,6 @@
+# https://github.com/coreos/flannel/issues/1192
+- type: remove
+  path: /flannel/public_ip
+- type: replace
+  path: /etcd/discovery
+  value: ETCD_DISCOVERY_PLACEHOLDER
