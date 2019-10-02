@@ -7,7 +7,7 @@ jobs:
     - get: moltencore-github-release
       trigger: true
     - get: packet-molten-core
-    - task: build-binary
+    - task: update-mc
       config:
         platform: linux
         image_resource:
@@ -53,5 +53,5 @@ resources:
   type: git
   source:
     branch: master
-    uri: git@github.com:starkandwayne/molten-core.git
+    uri: git@github.com:starkandwayne/packet-molten-core.git
     private_key: ((github-private-key))
