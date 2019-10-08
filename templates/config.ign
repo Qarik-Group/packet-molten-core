@@ -50,6 +50,14 @@
         "contents": "[Unit]\nDescription=MoltenCore\nRequires=etcd-member.service flanneld.service coreos-metadata.service\nAfter=etcd-member.service flanneld.service coreos-metadata.service\n\n[Service]\nType=oneshot\nExecStart=/opt/bin/mc init\nRemainAfterExit=true\nStandardOutput=journal\nUser=root\n\n[Install]\nWantedBy=multi-user.target docker.service\n",
         "enable": true,
         "name": "mc.service"
+      },
+      {
+        "mask": true,
+        "name": "update-engine.service"
+      },
+      {
+        "mask": true,
+        "name": "locksmithd.service"
       }
     ]
   }
