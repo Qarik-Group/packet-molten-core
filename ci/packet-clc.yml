@@ -1,6 +1,7 @@
-# https://github.com/coreos/flannel/issues/1192
-- type: remove
-  path: /flannel/public_ip
+# More context: https://github.com/coreos/flannel/issues/981
+- type: replace
+  path: /flannel/interface?
+  value: '{PRIVATE_IPV4}'
 
 # Replaced by terraform variable in resulting ignition config
 - type: replace

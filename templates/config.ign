@@ -39,7 +39,7 @@
       {
         "dropins": [
           {
-            "contents": "[Service]\nExecStart=\nExecStart=/usr/lib/coreos/flannel-wrapper $FLANNEL_OPTS\nExecStartPre=/usr/bin/etcdctl set /coreos.com/network/config \"{\\\"Network\\\": \\\"10.1.0.0/16\\\"}\"",
+            "contents": "[Unit]\nRequires=coreos-metadata.service\nAfter=coreos-metadata.service\n\n[Service]\nEnvironmentFile=/run/metadata/coreos\nExecStart=\nExecStart=/usr/lib/coreos/flannel-wrapper $FLANNEL_OPTS \\\n  --iface=\"$${COREOS_PACKET_IPV4_PRIVATE_0}\" \\\n  --public-ip=\"$${COREOS_PACKET_IPV4_PRIVATE_0}\"\nExecStartPre=/usr/bin/etcdctl set /coreos.com/network/config \"{\\\"Network\\\": \\\"10.1.0.0/16\\\"}\"",
             "name": "20-clct-flannel.conf"
           }
         ],
