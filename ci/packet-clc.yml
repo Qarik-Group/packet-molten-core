@@ -1,24 +1,3 @@
-<<<<<<< HEAD
-# More context: https://github.com/coreos/flannel/issues/981
-- type: replace
-  path: /flannel/interface?
-  value: '{PRIVATE_IPV4}'
-
-# Replaced by terraform variable in resulting ignition config
-=======
->>>>>>> pre-work for mc 0.5
 - type: replace
   path: /etcd/discovery
   value: ETCD_DISCOVERY_PLACEHOLDER
-
-# Disable auto updates until moltencore has support for draining containers
-- type: replace
-  path: /systemd/units/-
-  value:
-    name: update-engine.service
-    mask: true
-- type: replace
-  path: /systemd/units/-
-  value:
-    name: locksmithd.service
-    mask: true
