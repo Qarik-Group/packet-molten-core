@@ -15,12 +15,12 @@
         "filesystem": "root",
         "path": "/opt/bin/mc",
         "contents": {
-          "source": "https://github.com/starkandwayne/molten-core/releases/download/v0.4.0/mc",
+          "source": "https://github.com/starkandwayne/molten-core/releases/download/v0.6.0/mc",
           "verification": {
-            "hash": "sha512-54f5d1fb4fd22c5a45dcf960ad8ac86e22032662b58d8f714853fe272cc722c9a320c88954e3c95b41f61a52997e283b42f1de7bc06a5be40a12269ffa578538"
+            "hash": "sha512-16e160d9a4ae43076fdc44116e09a0b4e169fa10bb41de825022f5444b65b3150582f4e0200931ccd07c3a42f78d527b26b768c394a6d63cdc06c59de70882dc"
           }
         },
-        "mode": 511
+        "mode": 755
       }
     ]
   },
@@ -37,17 +37,7 @@
         "name": "etcd-member.service"
       },
       {
-        "dropins": [
-          {
-            "contents": "[Unit]\nRequires=coreos-metadata.service\nAfter=coreos-metadata.service\n\n[Service]\nEnvironmentFile=/run/metadata/coreos\nExecStart=\nExecStart=/usr/lib/coreos/flannel-wrapper $FLANNEL_OPTS \\\n  --iface=\"$${COREOS_PACKET_IPV4_PRIVATE_0}\" \\\n  --public-ip=\"$${COREOS_PACKET_IPV4_PRIVATE_0}\"\nExecStartPre=/usr/bin/etcdctl set /coreos.com/network/config \"{\\\"Network\\\": \\\"10.1.0.0/16\\\"}\"",
-            "name": "20-clct-flannel.conf"
-          }
-        ],
-        "enable": true,
-        "name": "flanneld.service"
-      },
-      {
-        "contents": "[Unit]\nDescription=MoltenCore\nRequires=etcd-member.service flanneld.service coreos-metadata.service\nAfter=etcd-member.service flanneld.service coreos-metadata.service\n\n[Service]\nType=oneshot\nExecStart=/opt/bin/mc init\nRemainAfterExit=true\nStandardOutput=journal\nUser=root\n\n[Install]\nWantedBy=multi-user.target docker.service\n",
+        "contents": "[Unit]\nDescription=MoltenCore\nRequires=etcd-member.service coreos-metadata.service\nAfter=etcd-member.service coreos-metadata.service\n\n[Service]\nType=oneshot\nExecStart=/opt/bin/mc init --zone=${mc_zone}\nRemainAfterExit=true\nStandardOutput=journal\nUser=root\n\n[Install]\nWantedBy=multi-user.target docker.service flanneld.service\n",
         "enable": true,
         "name": "mc.service"
       },
