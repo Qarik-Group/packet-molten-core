@@ -14,9 +14,11 @@ resource "packet_project_ssh_key" "ssh_key" {
 
 data "template_file" "ignition-config" {
   template = file("${path.module}/templates/config.ign")
+  count = "${var.node_count}"
 
   vars = {
     discovery_url = "${file(var.discovery_url_file)}"
+    mc_zone = count.index
   }
 
   depends_on = [template_file.etcd_discovery_url]
@@ -36,7 +38,7 @@ resource "packet_device" "node" {
   plan             = "${var.node_type}"
 
   count            = "${var.node_count}"
-  user_data        = "${data.template_file.ignition-config.rendered}"
+  user_data        = "${element(data.template_file.ignition-config.*.rendered, count.index)}"
   facilities       = ["${var.packet_facility}"]
   project_id       = "${var.packet_project_id}"
   billing_cycle    = "hourly"
