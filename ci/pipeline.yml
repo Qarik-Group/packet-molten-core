@@ -30,9 +30,10 @@ jobs:
               pushd repo
               ../ct -out-file templates/config.ign \
               -platform packet -pretty -strict \
-              -in-file <(bosh int ../release/container-linux-config.yaml -o ci/packet-clc.yml)
+              -in-file ../release/container-linux-config.yaml
               sed -i 's/${/$${/g' templates/config.ign
               sed -i 's/ETCD_DISCOVERY_PLACEHOLDER/${discovery_url}/g' templates/config.ign
+              sed -i 's/MC_ZONE_PLACEHOLDER/${mc_zone}/g' templates/config.ign
               git config --global user.email "ci@starkandwayne.com"
               git config --global user.name "CI Bot"
               git add -A && git commit -m "Updating to MoltenCore: $(cat ../release/version) "

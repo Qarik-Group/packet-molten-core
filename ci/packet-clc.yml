@@ -1,3 +1,0 @@
-- type: replace
-  path: /etcd/discovery
-  value: ETCD_DISCOVERY_PLACEHOLDER
