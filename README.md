@@ -9,31 +9,47 @@ Repo: https://github.com/starkandwayne/molten-core
 Blog:
 
 ## Deploying MoltenCore
+This project uses terraform to provision bare-metal servers.
 
-Requirements:
-- terraform 0.12.x
+### Install Terraform
+It has been tested successfully with **terraform 0.12.x**
+Follow the instructions [here](https://learn.hashicorp.com/terraform/getting-started/install.html)
+to install terraform on your system.
+
+### Clone the project
+The packet-molten-core repo contains the terraform we need for the task at hand.
+Go ahead and clone the repo, we will also copy the vars template which we need
+in further steps:
+
+```
+git clone https://github.com/starkandwayne/packet-molten-core
+cd packet-molten-core
+cp vars.tf.example vars.tf
+```
 
 ### Setup a Packet account
-Signup at https://app.packet.net/signup
+Create a Packet account by signing-up [here](https://app.packet.net/signup).
 
-Create a project
-for more information about the packet portal: https://support.packet.com/kb/articles/portal
+#### Create a project
+Your serves will be created in a project, please refer to [this support article](https://support.packet.com/kb/articles/portal)
+on how to setup a project.
 
-### retrieve your packet project id
-select the project you just created
-and then browse to project settings.
-here you will find your `Project ID`
+#### Retrieve your packet project id
+select the project you just created and then browse to project settings.
+here you will find your **Project ID**
 
-### retrieve your packet user api key
+1. copy your **Project ID** and fill it in your `vars.tf` file
+
+#### Retrieve your packet user api key
 in the right top corner you will see your profile
-in the dropdown menu you will see a link `API Keys`
+in the dropdown menu you will see a link **API Keys**
 create an api key here.
 
-### edit vars.tf
-copy vars.tf.example to vars.tf
-`cp vars.tf.example vars.tf`
+1. copy your **API Key** and fill it in your `vars.tf` file
 
-fill in your api and project id
+### *Optionally* customize the defaults
+With your **Project ID** and **API Key** filled in you should be go to go,
+however you might want the change the following defaults:
 
 choose a `packet_facility` location
 you can find all the locations listed here https://support.packet.com/kb/articles/data-centers
@@ -41,22 +57,36 @@ you can find all the locations listed here https://support.packet.com/kb/article
 
 select a `node_type` e.g. c1.small.x86
 you can find all type of nodes at https://www.packet.com/cloud/servers/
-we would recommend:  
+we would recommend:
 
 choose how many nodes you want `node_count`
 
-### Deploy!!
-now we need to verify and deploy our infrastructre
+### Deploy
+Now we can go ahead and deploy our cluster
 ```
 terraform init    # to retrieve all the modules
 terraform plan    # to verify all variables
 terraform apply   # actually deploy a MoltenCore
-terraform destroy # *WARNING* this will destroy your deployment
 ```
 
-## Running MoltenCore
-you just deployed MoltenCore on packet and now you want to know what is going on
-`./utils/ssh` by default ssh wil go to the first node you can add `./utils/ssh 1` to go the second node
+## Using MoltenCore
+All management interactions with your MoltenCore cluster are performed from the
+first node (zone zero, `z0` for short). This node also hosts the embedded [BUCC](https://github.com/starkandwayne/bucc).
+Use the helper script (`./utils/ssh`) to access `node-z0` by default it wil go to `z0`
+other nodes can be reached by passing a number (eg. `./utils/ssh 1` to go the second node)
 
-once your in sshed in to a node.
-check the documentation in the [MoltenCore](https://github.com/starkandwayne/molten-core) repo for further steps
+```
+./utils/ssh                   # ssh to node-z0
+journalctl -f -u bucc.service # wait for BUCC to be deployed
+mc shell                      # start interactive shell for interacting with BUCC
+```
+
+For more things to do with your cluster refer to the [molten-core repo](https://github.com/starkandwayne/molten-core).
+
+## Cleanup
+Terraform can be used to delete your MoltenCore cluster.
+To do so run the following command:
+```
+terraform destroy
+
+```
