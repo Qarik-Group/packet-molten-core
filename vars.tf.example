@@ -26,12 +26,12 @@ variable "packet_facility" {
 // All server type slugs are available at https://www.packet.com/cloud/servers
 
 
-// The Packet server to use as your DC/OS master server
+// The Packet server to use MoltenCore servers
 variable "node_type"  {
   default = "c1.small.x86"
 }
 
-// How many DC/OS private agent servers would you like?
+// How many MoltenCore servers would you like?
 variable "node_count" {
   default = "3"
 }
