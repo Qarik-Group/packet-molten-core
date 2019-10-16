@@ -4,9 +4,9 @@ This project allows operators to bootstrap a MoltenCore cluster on bare-metal
 using the [terraform provider](https://www.terraform.io/docs/providers/packet/index.html) for [packet.com](https://www.packet.com/).
 
 ## What is MoltenCore
-for more information about MoltenCore please see the following:
-Repo: https://github.com/starkandwayne/molten-core
-Blog:
+MoltenCore allows running containerized container platforms on bare-metal in a
+BOSH native way, using a highly available scale out architecture.
+The main repo can be found on [github](https://github.com/starkandwayne/molten-core).
 
 ## Deploying MoltenCore
 This project uses terraform to provision bare-metal servers.
@@ -51,15 +51,15 @@ create an api key here.
 With your **Project ID** and **API Key** filled in you should be go to go,
 however you might want the change the following defaults:
 
-choose a `packet_facility` location
+**packet_facility**
 you can find all the locations listed here https://support.packet.com/kb/articles/data-centers
 (this is the geographic location of the datacenter where the server will be hosted)
 
-select a `node_type` e.g. c1.small.x86
+**node_type** e.g. c1.small.x86
 you can find all type of nodes at https://www.packet.com/cloud/servers/
-we would recommend:
 
-choose how many nodes you want `node_count`
+**node_count**
+how many nodes you want, best to use odd numbers when deploying cf or k8s to keep quorum
 
 ### Deploy
 Now we can go ahead and deploy our cluster
