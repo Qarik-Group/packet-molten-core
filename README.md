@@ -51,15 +51,11 @@ create an api key here.
 With your **Project ID** and **API Key** filled in you should be go to go,
 however you might want the change the following defaults:
 
-**packet_facility**
-you can find all the locations listed here https://support.packet.com/kb/articles/data-centers
-(this is the geographic location of the datacenter where the server will be hosted)
+**packet_facility:** the geographic location of the server datacenter full list [here](https://support.packet.com/kb/articles/data-centers).
 
-**node_type** e.g. c1.small.x86
-you can find all type of nodes at https://www.packet.com/cloud/servers/
+**node_type:** the type of server to use, available types [here](https://www.packet.com/cloud/servers/)
 
-**node_count**
-how many nodes you want, best to use odd numbers when deploying cf or k8s to keep quorum
+**node_count:** number of nodes you want, best to use odd numbers when deploying cf or k8s to keep quorum
 
 ### Deploy
 Now we can go ahead and deploy our cluster
