@@ -21,7 +21,7 @@ variable "node_type"  {
 }
 
 variable "node_count" {
-  type = "integer"
+  type = "string"
   default = "3"
   description = "Number of nodes you want, best to use odd numbers when deploying cf or k8s to keep quorum"
 }
