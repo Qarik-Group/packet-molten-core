@@ -24,7 +24,7 @@ in further steps:
 ```
 git clone https://github.com/starkandwayne/packet-molten-core
 cd packet-molten-core
-cp vars.tf.example vars.tf
+cp terraform.tfvars.example terraform.tfvars
 ```
 
 ### Setup a Packet account
@@ -38,14 +38,14 @@ on how to setup a project.
 select the project you just created and then browse to project settings.
 here you will find your **Project ID**
 
-1. copy your **Project ID** and fill it in your `vars.tf` file
+1. copy your **Project ID** and fill it in your `terraform.tfvars` file
 
 #### Retrieve your packet user api key
 in the right top corner you will see your profile
 in the dropdown menu you will see a link **API Keys**
 create an api key here.
 
-1. copy your **API Key** and fill it in your `vars.tf` file
+1. copy your **API Key** and fill it in your `terraform.tfvars` file
 
 ### *Optionally* customize the defaults
 With your **Project ID** and **API Key** filled in you should be go to go,

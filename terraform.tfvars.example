@@ -1,0 +1,5 @@
+packet_api_key = ""
+packet_project_id = ""
+packet_facility = "ams1"
+node_type = "c1.small.x86"
+node_count = "3"

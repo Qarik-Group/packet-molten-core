@@ -1,6 +1,6 @@
 /*.tfstate
+/*.tfvars
 /*.backup
-/vars.tf
 /key
 /.terraform
 /discovery_url.tmp
